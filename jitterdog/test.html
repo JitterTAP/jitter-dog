@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+<head></head>
+<body>
+<script>
+var jitterbug = new WebSocket('ws://localhost:15000/jitterdog', []);
+
+jitterbug.onopen = function() {
+    jitterbug.send('HAI');
+};
+
+jitterbug.onmessage = function(event) {
+  console.log(event.data);
+};
+</script>
+</body>
+</html>
