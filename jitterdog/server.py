@@ -6,8 +6,9 @@ import tornado.ioloop
 import tornado.gen
 import tornado.websocket
 import tornado.locks
-from jitterdog import settings
-from jitterdog.watcher import JitterDog
+import settings
+from watcher import JitterDog
+import uuid
 
 jitter_dog = JitterDog('./')
 
@@ -24,13 +25,16 @@ class HealthCheckHandler(tornado.web.RequestHandler): # noqa
 
 
 class JitterDogHandler(tornado.websocket.WebSocketHandler): # noqa
+
     def open(self):
-        print("Connected to Jitter Dog Socket!\n")
+        self.id = uuid.uuid4()
+        print("Connected to Jitter Dog Socket %s!\n" % self.id)
+        jitter_dog.add_listener(self.id)
 
     @tornado.gen.coroutine
     def on_message(self, _):
         while True:
-            result = yield jitter_dog.get_message()
+            result = yield jitter_dog.get_message(self.id)
             json_result = json.dumps(result)
             print(json_result)
             self.write_message(json_result)
@@ -39,7 +43,9 @@ class JitterDogHandler(tornado.websocket.WebSocketHandler): # noqa
         return True
 
     def on_close(self):
+        jitter_dog.remove_listener(self.id)
         print("Closing Jitter Dog Socket\n")
+
 
 
 
