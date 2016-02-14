@@ -49,3 +49,6 @@ class JitterDog(FileSystemEventHandler):
 
     def on_modified(self, event):
         self.put_message(event)
+    
+    def set_path(self,path):
+        self.path = path
