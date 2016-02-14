@@ -20,20 +20,21 @@ class JitterDog(FileSystemEventHandler):
     @gen.coroutine
     def remove_listener(self, ident):
         with (yield self._lock.acquire()):
-            self._queues.remove(ident)
+            del self._queues[ident]
 
     def get_message(self, ident):
         return self._queues[ident].get()
 
     @gen.coroutine
     def put_message(self, event):
-        print event
         event_dict = {
             'event_name': event.event_type,
             'src_path': event.src_path,
             'is_directory': event.is_directory,
         }
-        yield map((lambda ident: self._queues[ident].put(event_dict)), self._queues.keys())
+        if not event.is_directory:
+            for key, queue in self._queues.items():
+                yield queue.put(event_dict)
 
     def start(self):
         self._observer.schedule(self, self.path, recursive=True)
@@ -50,6 +51,6 @@ class JitterDog(FileSystemEventHandler):
 
     def on_modified(self, event):
         self.put_message(event)
-    
+
     def set_path(self,path):
         self.path = path
