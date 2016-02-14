@@ -27,12 +27,13 @@ class JitterDog(FileSystemEventHandler):
 
     @gen.coroutine
     def put_message(self, event):
+        print event
         event_dict = {
             'event_name': event.event_type,
             'src_path': event.src_path,
             'is_directory': event.is_directory,
         }
-        yield map((lambda ident: self._queues[ident].put(event_dict)), self._queues)
+        yield map((lambda ident: self._queues[ident].put(event_dict)), self._queues.keys())
 
     def start(self):
         self._observer.schedule(self, self.path, recursive=True)
