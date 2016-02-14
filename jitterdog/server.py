@@ -13,12 +13,13 @@ import uuid
 jitter_dog = JitterDog('/mnt/jitters')
 
 change_events = tornado.locks.Event()
-
+clients = []
 
 class JenkinsHandler(tornado.web.RequestHandler):
     def get(self):
-        location = self.get_argument('location', None)
-        self.write(location)
+        for client in clients:
+            msg = json.dumps({'changed': True})
+            client.write_message()
 
 class HealthCheckHandler(tornado.web.RequestHandler): # noqa
     def set_default_headers(self):
@@ -33,21 +34,23 @@ class JitterDogHandler(tornado.websocket.WebSocketHandler): # noqa
     def open(self):
         self.id = uuid.uuid4()
         print("Connected to Jitter Dog Socket %s!\n" % self.id)
-        jitter_dog.add_listener(self.id)
+        clients.append(self)
 
     @tornado.gen.coroutine
     def on_message(self, _):
-        while True:
-            result = yield jitter_dog.get_message(self.id)
-            json_result = json.dumps(result)
-            print(json_result)
-            self.write_message(json_result)
+        pass
+        #while True:
+        #    yield change_events.wait()
+        #    result = yield jitter_dog.get_message(self.id)
+        #    json_result = json.dumps(result)
+        #    print(json_result)
+        #    self.write_message(json_result)
 
     def check_origin(self, origin):
         return True
 
     def on_close(self):
-        jitter_dog.remove_listener(self.id)
+        clients.remove(self)
         print("Closing Jitter Dog Socket\n")
 
 
