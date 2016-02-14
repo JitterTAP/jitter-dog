@@ -10,7 +10,7 @@ import settings
 from watcher import JitterDog
 import uuid
 
-jitter_dog = JitterDog('./')
+jitter_dog = JitterDog('/mnt/jitters')
 
 change_events = tornado.locks.Event()
 
@@ -32,6 +32,7 @@ class JitterDogHandler(tornado.websocket.WebSocketHandler): # noqa
         jitter_dog.add_listener(self.id)
 
     @tornado.gen.coroutine
+    # _ = DATA
     def on_message(self, _):
         while True:
             result = yield jitter_dog.get_message(self.id)
